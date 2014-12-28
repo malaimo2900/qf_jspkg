@@ -1,0 +1,90 @@
+<?php
+
+
+
+define('QF_ADMIN_PERM', 'qf jspkg admin');
+
+define('QF_JSPKG_PATH', drupal_get_path('module', 'qf_jspkg'));
+
+define('QF_LIBRARIES_VAR', 'qf_jspkg_libraries');
+
+define('QF_JSPKG_EMBER_JS_URL',  QF_JSPKG_PATH . '/js/ember.min.js' );
+define('QF_JSPKG_HANDLEBARS_JS_URL',  QF_JSPKG_PATH . '/js/handlebars-v2.0.0.js' );
+define('QF_JSPKG_ANGULAR_JS_URL',  QF_JSPKG_PATH . '/js/angular.min.js' );
+define('QF_JSPKG_SYNAPSE_JS_URL',  QF_JSPKG_PATH . '/js/synapse-min.js' );
+define('QF_JSPKG_BACKBONE_JS_URL',  QF_JSPKG_PATH . '/js/backbone-min.js' );
+
+function _qf_jspkg_get_libraries() {
+	return array(
+		'ember_js' => array('name' => 'Ember JS', 'path' => QF_JSPKG_EMBER_JS_URL, 'version' => '1.9.0'),
+		'handlebars' => array('name' => 'Handlebars', 'path' => QF_JSPKG_HANDLEBARS_JS_URL, 'version' => '2.0.0'),
+		'angular_js' => array('name' => 'Angular JS', 'path' => QF_JSPKG_ANGULAR_JS_URL, 'version' => '1.3.8'),
+		'synapse_js' => array('name' => 'Synapse JS', 'path' => QF_JSPKG_SYNAPSE_JS_URL, 'version' => '0.5.1'),
+		'backbone_js' => array('name' => 'Backbone JS', 'path' => QF_JSPKG_BACKBONE_JS_URL, 'version' => '1.1.2')
+	);
+}
+
+
+function qf_jspkg_init() {
+	$libraries = _qf_jspkg_get_libraries();
+	
+	foreach (variable_get(QF_LIBRARIES_VAR, array()) as $library) {
+		drupal_add_js($libraries[$library]['path']);
+	}
+}
+
+function qf_jspkg_permission() {
+	return array(QF_ADMIN_PERM => array(
+			'title' => t('QF JSPKG Settings'),
+			'description' => t('Will enable a user to modify the QS JSPKG Settings')
+	));
+}
+
+
+function qf_jspkg_menu() {
+	$items['admin/config/qf/jspkg'] = array(
+			'title' => 'QF JavaScript Package Settings',
+			'page callback' => 'drupal_get_form',
+			'page arguments' => array('qf_jspkg_admin_form'),
+			'access arguments' => array(QF_ADMIN_PERM)
+	);
+
+	return $items;
+}
+
+function qf_jspkg_admin_form() {
+	$form = array();
+	$options = array();
+	
+	$libraries = _qf_jspkg_get_libraries();
+	
+	foreach ($libraries as $key => $jsLibrary) {
+		$options[$key] = t('@name (@version)', array('@name' => $jsLibrary['name'], '@version' => $jsLibrary['version']));
+	}
+	
+	$form[QF_LIBRARIES_VAR] = array(
+			'#type' => 'checkboxes',
+			'#title' => t('Enable/Disable JavaScript Libraries'),
+			'#options' => $options,
+			'#default_value' => variable_get(QF_LIBRARIES_VAR, array()),
+			'#description' => t('The minimum number of reprints possible')
+	);
+	
+	unset($jsLibrary, $key, $libraries, $options);
+	
+	return system_settings_form($form);
+}
+
+
+function qf_jspkg_admin_form_validate($form, &$form_state) {
+	qf_jspkg_admin_form_items($form_state, array());
+}
+
+
+function qf_jspkg_admin_form_items($form_state, $keys) {
+	foreach ($keys as $key) {
+		if (!($val = filter_var($form_state['values'][$key], FILTER_VALIDATE_INT) && !in_array($val, array(0, 1)))) {
+			form_set_error($key, t('Please select a correct value for @key', array('@key' => $key)));
+		}
+	}
+}

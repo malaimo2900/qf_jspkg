@@ -1,0 +1,8 @@
+name = Drupal JavaScript AMD Loader
+description = Enables Drupal to load JavaScript files via an AMD design pattern.
+core = 7.x
+package = Quantum Foam Drupal
+scripts[] = js/require.js
+php = 5.3
+configure = admin/config/qf/jspkg
+project status url = http://github.com/malaimo2900/qf_jspkg
